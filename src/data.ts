@@ -1,33 +1,52 @@
 export type Question = { numbers: number[]; blank: number; choices: number[] }
-export type Stage = { id: number; step: number; color: string; questions: Question[] }
+export type Stage = { id: number; multiple: number; color: string; questions: Question[] }
 
-const starts = [
-  [1, 4, 10, 21, 31], [2, 5, 11, 24, 37], [3, 10, 22, 38, 49],
-  [1, 7, 14, 23, 35], [2, 9, 17, 26, 35], [3, 11, 20, 34, 45],
-  [1, 9, 18, 29, 43], [2, 11, 21, 34, 47], [1, 12, 23, 36, 50],
-]
-
-const steps = [2, 5, 10, 3, 4, 6, 7, 8, 9]
+const multiples = [2, 5, 10, 3, 4, 6, 7, 8, 9]
 const colors = ['#ff7b73', '#ffae45', '#f3c84c', '#6fcf97', '#55c7c2', '#64a8ed', '#8d8fe8', '#c180dc', '#ed7fab']
 
-function makeQuestion(start: number, step: number, index: number): Question {
-  const numbers = Array.from({ length: 5 }, (_, i) => start + step * i)
-  const blank = (index * 2 + 1) % 5
-  const answer = numbers[blank]
-  const candidates = [answer, answer - step, answer + step, answer - 1, answer + 1, answer + step * 2]
-    .filter((n, i, arr) => n >= 0 && n <= 99 && n !== answer ? arr.indexOf(n) === i : n === answer)
-  const choices = [answer, ...candidates.filter(n => n !== answer)].slice(0, 5)
-  while (choices.length < 5) {
-    const n = Math.min(99, answer + choices.length + 2)
-    if (!choices.includes(n)) choices.push(n)
+function shuffle<T>(items: T[]): T[] {
+  const result = [...items]
+  for (let i = result.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[result[i], result[j]] = [result[j], result[i]]
   }
-  const rotation = index % choices.length
-  return { numbers, blank, choices: [...choices.slice(rotation), ...choices.slice(0, rotation)] }
+  return result
 }
 
-export const stages: Stage[] = steps.map((step, i) => ({
-  id: i + 1,
-  step,
-  color: colors[i],
-  questions: starts[i].map((start, q) => makeQuestion(start, step, q)),
+function makeChoices(answer: number, multiple: number, numbers: number[]): number[] {
+  const nearby = [
+    answer - 1, answer + 1,
+    answer - multiple, answer + multiple,
+    answer - 2, answer + 2,
+    answer - multiple * 2, answer + multiple * 2,
+  ]
+  const candidates = shuffle(nearby).filter((value, index, all) =>
+    value >= 1 && value <= 99 && value !== answer && !numbers.includes(value) && all.indexOf(value) === index,
+  )
+
+  for (let value = 1; candidates.length < 4 && value <= 99; value += 1) {
+    if (value !== answer && !numbers.includes(value) && !candidates.includes(value)) candidates.push(value)
+  }
+
+  return shuffle([answer, ...candidates.slice(0, 4)])
+}
+
+function makeQuestions(multiple: number): Question[] {
+  const largestStart = Math.floor(99 / multiple) - 4
+  const starts = shuffle(Array.from({ length: largestStart }, (_, i) => i + 1)).slice(0, 5)
+
+  return starts.map(start => {
+    const numbers = Array.from({ length: 5 }, (_, i) => (start + i) * multiple)
+    const blank = Math.floor(Math.random() * numbers.length)
+    const answer = numbers[blank]
+    return { numbers, blank, choices: makeChoices(answer, multiple, numbers) }
+  })
+}
+
+// ページを開くたびに、新しい5問を各ステージに生成します。
+export const stages: Stage[] = multiples.map((multiple, index) => ({
+  id: index + 1,
+  multiple,
+  color: colors[index],
+  questions: makeQuestions(multiple),
 }))

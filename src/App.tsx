@@ -35,7 +35,7 @@ function App() {
     if (solved) return
     const correct = question.numbers[question.blank]
     if (value === correct) {
-      setSolved(true); setWrong(null); setMessage(`${stage.step}ずつ ふえてる！`)
+      setSolved(true); setWrong(null); setMessage(`${stage.multiple}の ばいすう！`)
     } else {
       setWrong(value); setMessage('もういちど')
       window.setTimeout(() => setWrong(null), 450)
@@ -67,7 +67,7 @@ function App() {
       <div className="stage-grid">
         {stages.map((s, i) => <button key={s.id} className={`stage-card ${cleared.includes(s.id) ? 'is-cleared' : ''}`} style={{ '--stage-color': s.color } as React.CSSProperties} onClick={() => startStage(i)}>
           {cleared.includes(s.id) && <span className="check">✓</span>}
-          <small>ステージ</small><strong>{s.id}</strong><span>{s.step}ずつ ふえる</span>
+          <small>ステージ</small><strong>{s.id}</strong><span>{s.multiple}の ばいすう</span>
         </button>)}
       </div>
       <button className="secondary bottom-button" onClick={() => setScreen('home')}>⌂　ホームへ</button>
@@ -96,7 +96,7 @@ function App() {
       <Confetti big />
       <div className="trophy" aria-hidden="true">★</div>
       <p className="eyebrow">やったね！</p><h2>ステージ {stage.id}<br /><em>クリア！</em></h2>
-      <div className="clear-rule"><span>{stage.step}</span><p>ずつ ふえる<br />きまりを みつけたよ</p></div>
+      <div className="clear-rule"><span>{stage.multiple}</span><p>の ばいすうを<br />みつけたよ</p></div>
       <div className="clear-actions">
         <button className="secondary" onClick={() => setScreen('home')}>⌂　ホームへ</button>
         <button className="secondary" onClick={() => startStage(stageIndex)}>↻　もういちど</button>
