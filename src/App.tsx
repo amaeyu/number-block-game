@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { stages } from './data'
+import { gameAudio } from './audio'
 
 type Screen = 'home' | 'stages' | 'game' | 'clear'
 const STORAGE_KEY = 'number-block-game-cleared'
@@ -17,6 +18,7 @@ function App() {
   const [solved, setSolved] = useState(false)
   const [wrong, setWrong] = useState<number | null>(null)
   const [message, setMessage] = useState('どれが はいるかな？')
+  const [muted, setMuted] = useState(false)
   const [cleared, setCleared] = useState<number[]>(() => {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') } catch { return [] }
   })
@@ -27,6 +29,7 @@ function App() {
   const question = stage.questions[questionIndex]
 
   function startStage(index: number) {
+    gameAudio.play('tap')
     setStageIndex(index); setQuestionIndex(0); setSolved(false); setWrong(null)
     setMessage('どれが はいるかな？'); setScreen('game')
   }
@@ -35,8 +38,10 @@ function App() {
     if (solved) return
     const correct = question.numbers[question.blank]
     if (value === correct) {
+      gameAudio.play('correct')
       setSolved(true); setWrong(null); setMessage(`${stage.multiple}の ばいすう！`)
     } else {
+      gameAudio.play('wrong')
       setWrong(value); setMessage('もういちど')
       window.setTimeout(() => setWrong(null), 450)
     }
@@ -44,21 +49,39 @@ function App() {
 
   function next() {
     if (questionIndex < 4) {
+      gameAudio.play('tap')
       setQuestionIndex(q => q + 1); setSolved(false); setWrong(null); setMessage('どれが はいるかな？')
     } else {
+      gameAudio.play('clear')
       setCleared(prev => prev.includes(stage.id) ? prev : [...prev, stage.id])
       setScreen('clear')
     }
   }
 
+  async function begin() {
+    await gameAudio.start()
+    gameAudio.play('tap')
+    setScreen('stages')
+  }
+
+  function toggleSound() {
+    const nextMuted = !muted
+    setMuted(nextMuted)
+    gameAudio.setMuted(nextMuted)
+    if (!nextMuted) {
+      void gameAudio.start().then(() => gameAudio.play('tap'))
+    }
+  }
+
   return <main className="app-shell">
+    <button className="sound-button" onClick={toggleSound} aria-label={muted ? 'おとを だす' : 'おとを けす'} title={muted ? 'おとを だす' : 'おとを けす'}>{muted ? '🔇' : '🔊'}</button>
     <div className="cloud cloud-one" /><div className="cloud cloud-two" />
     {screen === 'home' && <section className="screen home-screen">
       <div className="logo-cubes" aria-hidden="true"><span>1</span><span>2</span><span>3</span></div>
       <p className="eyebrow">みつけよう！ すうじの きまり</p>
       <h1>すうじブロック<br /><em>ならべ</em></h1>
       <p className="intro">「？」に はいる すうじを えらんでね</p>
-      <button className="primary huge" onClick={() => setScreen('stages')}>あそぶ <b>›</b></button>
+      <button className="primary huge" onClick={begin}>あそぶ <b>›</b></button>
       <div className="home-stars" aria-hidden="true">✦　●　✦</div>
     </section>}
 

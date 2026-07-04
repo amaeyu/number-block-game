@@ -5,6 +5,8 @@
 body { margin: 0; min-width: 320px; min-height: 100vh; }
 button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .app-shell { min-height: 100vh; overflow: hidden; position: relative; background: radial-gradient(circle at 50% 0%, #fff 0, #fff9e9 54%, #fff1c9 100%); }
+.sound-button { position: fixed; z-index: 20; top: 18px; right: 18px; width: 56px; height: 56px; border: 2px solid #eee3cc; border-radius: 18px; background: rgba(255,255,255,.94); box-shadow: 0 5px 0 #ded6c7; font-size: 25px; line-height: 1; }
+.sound-button:active { transform: translateY(3px); box-shadow: 0 2px 0 #ded6c7; }
 .screen { min-height: 100vh; width: min(100%, 1000px); margin: auto; padding: 36px clamp(20px, 5vw, 64px); position: relative; z-index: 2; display: flex; flex-direction: column; }
 .eyebrow { color: #ee7d63; letter-spacing: .12em; margin: 0 0 8px; font-size: clamp(15px, 2.4vw, 21px); }
 h1, h2, p { text-align: center; }
